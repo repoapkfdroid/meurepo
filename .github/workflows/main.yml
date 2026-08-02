@@ -1,0 +1,62 @@
+name: Gerar Catalogo F-Droid Oficial
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install fdroidserver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fdroidserver android-sdk-build-tools
+
+      - name: Build F-Droid Repository
+        run: |
+          mkdir -p repo
+          
+          # Cria a chave de assinatura digital
+          keytool -genkey -v -keystore keystore.p12 -storetype PKCS12 -alias repo -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=FDroidRepo"
+          
+          # Configurações do F-Droid
+          cat << 'EOF' > config.yml
+          repo_url: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/repo"
+          repo_name: "Meu Repositorio F-Droid"
+          repo_description: "Repositorio de Testes"
+          archive_older: 0
+          EOF
+
+          # Gera o indice assinado
+          fdroid update --create-metadata --keystore keystore.p12 --repo-keyalias repo --keystorepass 123456
+
+          # Prepara os arquivos para publicação
+          mkdir -p public
+          cp -r repo public/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'public'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
