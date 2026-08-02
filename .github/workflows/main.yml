@@ -15,42 +15,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Instalar Python e F-Droid
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip3 install fdroidserver --break-system-packages
-
-      - name: Gerar estrutura basica e indice
-        run: |
-          mkdir -p repo
-          mkdir -p public/repo
-          
-          # Copia os APKs para a pasta public
-          cp -r repo/* public/repo/ 2>/dev/null || true
-          
-          # Cria a keystore basica
-          keytool -genkey -v -keystore keystore.p12 -storetype PKCS12 -alias repo -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=FDroidRepo"
-
-          # Cria o arquivo de configuracao simples do F-Droid
-          cat << 'EOF' > config.yml
-          repo_url: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/repo"
+      - name: Build F-Droid Repo
+        uses: flash3ky/fdroid-repository-action@v1
+        with:
           repo_name: "Meu Repositorio F-Droid"
           repo_description: "Repositorio de Aplicativos"
-          archive_older: 0
-          EOF
-
-          # Executa a geracao do indice sem depender do Android SDK
-          fdroid update --create-metadata --keystore keystore.p12 --repo-keyalias repo --keystorepass 123456 || true
-
-          # Garante que os arquivos gerados fiquem na pasta public
-          cp -r repo/* public/repo/ 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -58,7 +36,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'public'
+          path: 'repo'
 
       - name: Deploy to GitHub Pages
         id: deployment
