@@ -24,11 +24,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build F-Droid Repo
-        uses: flash3ky/fdroid-repository-action@v1
-        with:
+      - name: Instalar Python e Dependencias do F-Droid
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip openjdk-17-jdk
+          pip3 install fdroidserver --break-system-packages
+
+      - name: Compilar Repositorio F-Droid
+        run: |
+          # 1. Garante que a estrutura basica existe
+          mkdir -p repo
+
+          # 2. Gera a Keystore Java
+          keytool -genkey -v -keystore keystore.p12 -storetype PKCS12 -alias repo -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=FDroidRepo"
+
+          # 3. Cria arquivo de configuracao basico
+          cat << 'EOF' > config.yml
+          repo_url: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/repo"
           repo_name: "Meu Repositorio F-Droid"
-          repo_description: "Repositorio de Aplicativos"
+          repo_description: "Repositorio de Testes"
+          archive_older: 0
+          EOF
+
+          # 4. Gera a estrutura e o indice F-Droid
+          fdroid update --create-metadata --keystore keystore.p12 --repo-keyalias repo --keystorepass 123456
+
+          # 5. Prepara pasta final de publicacao
+          mkdir -p public
+          cp -r repo public/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -36,7 +59,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'repo'
+          path: 'public'
 
       - name: Deploy to GitHub Pages
         id: deployment
