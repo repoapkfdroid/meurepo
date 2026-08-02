@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -21,32 +21,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install fdroidserver
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fdroidserver android-sdk-build-tools
-
-      - name: Build F-Droid Repository
+      - name: Gerar Repositorio F-Droid via Docker
         run: |
           # 1. Garante que a pasta repo existe
           mkdir -p repo
-          
-          # 2. Gera a keystore se não existir
-          keytool -genkey -v -keystore keystore.p12 -storetype PKCS12 -alias repo -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=FDroidRepo"
 
-          # 3. Cria a configuração base do F-Droid
-          cat << 'EOF' > config.yml
-          repo_url: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/repo"
-          repo_name: "Meu Repositorio F-Droid"
-          repo_icon: "icon.png"
-          repo_description: "Repositorio de Aplicativos"
-          archive_older: 0
-          EOF
+          # 2. Executa o fdroid update dentro do container oficial com keeystore gerada na hora
+          docker run --rm -v $(pwd):/repo fdroid/fdroidserver:latest bash -c "
+            cd /repo && \
+            keytool -genkey -v -keystore keystore.p12 -storetype PKCS12 -alias repo -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname 'CN=FDroidRepo' && \
+            cat << 'EOF' > config.yml
+repo_url: \"https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/repo\"
+repo_name: \"Meu Repositorio F-Droid\"
+repo_description: \"Repositorio de APKs\"
+archive_older: 0
+EOF
+            fdroid update --create-metadata --keystore keystore.p12 --repo-keyalias repo --keystorepass 123456
+          "
 
-          # 4. Processa os APKs e cria os indices
-          fdroid update --create-metadata --keystore keystore.p12 --repo-keyalias repo --keystorepass 123456 || fdroid update --keystore keystore.p12 --repo-keyalias repo --keystorepass 123456
-
-          # 5. Prepara os arquivos para o GitHub Pages
+      - name: Preparar arquivos para o GitHub Pages
+        run: |
           mkdir -p public
           cp -r repo public/
 
