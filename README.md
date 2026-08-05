@@ -15,3 +15,8 @@ Arcade
 **Instalações**:
 10.000+
 
+Skins personalizáveis 
+
+Combinação de botões para fazer combos 
+
+Capas personalizáveis 
