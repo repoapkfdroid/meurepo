@@ -1,3 +1,28 @@
+**Versão**:
+5.2.7
+
+**Última atualização**: 
+7 de set de 2022
+
+
+**Desenvolvedor**:
+WinKawaks™ Team
+
+
+**Categoria**:
+Arcade
+
+**Instalações**:
+10.000+
+
+
+
+
+
+
+
+
+
 O Kawaks é um dos melhores emuladores de arcade, simples, leve, completo.
 
 Você pode combinar os botões para ficar mais prático para fazer os combos
