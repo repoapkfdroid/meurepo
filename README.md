@@ -1,3 +1,5 @@
+<img width="800" height="480" alt="Image" src="https://github.com/user-attachments/assets/a0b9354a-839d-47fa-b688-7631d424143d" />
+
 O Kawaks é um emulador para Android que permite executar jogos de consoles como NeoGeo, Capcom CPS1 e CPS2, jogos de arcade, além de poder ser configurado de forma avançada e fácil de usar.
 
 **Versão**:
