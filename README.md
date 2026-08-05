@@ -9,7 +9,7 @@ O Kawaks é um emulador para Android que permite executar jogos de consoles como
 7 de set de 2022
 
 **Desenvolvedor**:
-WinKawaks™ Team
+[**WinKawaks™ Team**](https://www.winkawaks.org/)
 
 **Categoria**:
 Arcade
